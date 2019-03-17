@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">GosteeKassa</string>
+    <string name="registration_info">Для того чтобы начать пользоваться приложением заполните все поля ниже и нажмите кнопку «Зарегистрироваться»</string>
+    <string name="registration_info1">приложением заполните все поля ниже</string>
+    <string name="registration_info2">и нажмите кнопку «Зарегистрироваться»</string>
+    <string name="TextButtonReg">ЗАРЕГИСТРИРОВАТЬСЯ</string>
+    <string name="textContact">Логин</string>
+    <string name="textPassword">Придумайте пароль</string>
+    <string name="textPasswordRepeat">Повторите пароль</string>
+    <string name="textName">Как Вас зовут?</string>
+    <string name="textAuthorization">АВТОРИЗАЦИЯ</string>
+    <string name="textRememberPassword">Забыли пароль?</string>
+    <string name="textReg">Регистрация</string>
+    <string name="todo">TODO</string>
+    <string name="textInput">ВОЙТИ</string>
+    <string name="todo1">TODO</string>
+    <string name="textRecoveryPassword">Для восстановления пароля вам необходимо ввести свой логин,
+    после чего вам будет сброшен новый пароль для входа</string>
+    <string name="textSendPassword">ОТПРАВИТЬ</string>
+    <string name="inputYourLogin">Введите ваш логин:</string>
+    <string name="text_to_add_view">Введите название заведения и выберите нужную Вам карту из списка ниже</string>
+    <string name="your_qr">ВАШ QR КОД</string>
+    <string name="show_qr">Покажите данный QR код кассиру для сканирования и отметке о покупке</string>
+    <string name="vacation">Отмена</string>
+    <string name="email">Email-адрес</string>
+    <string name="phoneNumber">Номер телефона</string>
+    <string name="scanning_code">СКАНИРОВАТЬ КОД</string>
+    <string name="confirm">ПОДТВЕРДИТЬ</string>
+    <color name="gosteeBackgroundColor">#e2e2e2</color>
+</resources>
