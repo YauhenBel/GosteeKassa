@@ -26,5 +26,9 @@
     <string name="phoneNumber">Номер телефона</string>
     <string name="scanning_code">СКАНИРОВАТЬ КОД</string>
     <string name="confirm">ПОДТВЕРДИТЬ</string>
+    <string name="toSave">СОХРАНИТЬ</string>
+    <string name="inProcess">В ПРОЦЕССЕ</string>
+    <string name="inFinish">В КОНЦЕ</string>
+    <string name="worker_days">Дни работы</string>
     <color name="gosteeBackgroundColor">#e2e2e2</color>
 </resources>

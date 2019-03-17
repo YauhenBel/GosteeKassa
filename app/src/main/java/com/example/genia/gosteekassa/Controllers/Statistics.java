@@ -31,4 +31,12 @@ public class Statistics extends AppCompatActivity {
     public void goBack(View view) {
         finish();
     }
+
+    public void goEitInfo(View view) {
+
+        Intent intent = new Intent(Statistics.this, EditKassa.class);
+        startActivity(intent);
+    }
+
+
 }

@@ -52,7 +52,7 @@ public class Registration extends AppCompatActivity {
 
         btnReg = (Button) findViewById(R.id.btnReg);
 
-        edLogin = (EditText) findViewById(R.id.edLogin);
+        edLogin = (EditText) findViewById(R.id.edNameOfShop);
         edPassword = (EditText) findViewById(R.id.edPassword);
         edPasswordRepeat = (EditText) findViewById(R.id.edPasswordRepeat);
         edName = (EditText) findViewById(R.id.edName);
