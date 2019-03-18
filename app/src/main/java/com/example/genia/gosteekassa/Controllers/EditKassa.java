@@ -91,6 +91,8 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
                 btnInFinish.setBackground(getDrawable(R.drawable.button_states_three));
                 break;
             case R.id.btnToSave:
+                String workersDays = getWorkerDays();
+                Log.i(TAG, "onClick: workersDays: " + workersDays);
                 break;
             case R.id.imbtnGetImage:
                 Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -98,6 +100,81 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
                 startActivityForResult(photoPickerIntent, 1);
                 break;
         }
+    }
+
+
+    private String getWorkerDays(){
+        String workerDays = "", firsDay = "", lastDay = "";
+        Boolean fDay = false, lDay = false, status = true;
+        Boolean [] week = {false, false, false, false, false, false, false};
+
+        if (chBMonday.isChecked()) week[0] = true;
+        if (chBTuesday.isChecked()) week[1] = true;
+        if (chBWednesday.isChecked()) week[2] = true;
+        if (chBThursday.isChecked()) week[3] = true;
+        if (chBFriday.isChecked()) week[4] = true;
+        if (chBSaturday.isChecked()) week[5] = true;
+        if (chBSunday.isChecked()) week[6] = true;
+
+
+
+        for (int i = 0; i < 7; i++){
+            if (!week[i]){
+                status = false;
+                break;
+            }
+        }
+
+        if (status) return "Ежедневно";
+
+        Log.i(TAG, "getWorkerDays: sds");
+
+        int x = 0;
+
+        for (int i = 0; i < 7; i++){
+            x = i;
+            Log.i(TAG, "getWorkerDays: [" + i + "] = " + week[i] );
+            if (!fDay && week[i]){
+                firsDay = getDay(i);
+                fDay = true;
+                if (!week[x++]){
+                    workerDays +=firsDay + ",";
+                    fDay = false;
+                }
+            }
+            if (fDay && week[i]){
+                if (week[x++]) continue;
+                lastDay += getDay(i);
+            }
+            if (fDay && lDay) {
+                workerDays += firsDay + "-" + lastDay;
+                fDay = false;
+                lDay = false;
+            }
+        }
+
+        return workerDays;
+    }
+
+    private String getDay(int i){
+        switch (i){
+            case 0:
+                return "ПН";
+            case 1:
+                return "ВТ";
+            case 2:
+                return "СР";
+            case 3:
+                return "ЧТ";
+            case 4:
+                return "ПТ";
+            case 5:
+                return "СБ";
+            case 6:
+                return "ВС";
+
+        }
+        return "";
     }
 
     @Override
