@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void workWithGui(final int x){
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
+        new Handler(Looper.getMainLooper()).post(       new Runnable() {
             @Override public void run() {
                 switch (x){
                     case 0:
