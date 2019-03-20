@@ -53,7 +53,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="15dp"
                 android:gravity="center"
-                android:text="Загрузите или замените изображение вашей карточки"
+                android:text="Выберите изображение в формате PNG и размером не более 300 Кб"
                 android:textColor="@color/colorDarkGray"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -117,6 +117,33 @@
                 app:layout_constraintTop_toBottomOf="@+id/textView17" />
 
             <TextView
+                android:id="@+id/textView23"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="10dp"
+                android:text="Максимальное количество отметок"
+                android:textColor="@color/colorDarkGray"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/edDescription" />
+
+            <EditText
+                android:id="@+id/edCount"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/back_edittext"
+                android:ems="10"
+                android:gravity="center"
+                android:inputType="time"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView23" />
+
+            <TextView
                 android:id="@+id/textView18"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -127,7 +154,7 @@
                 android:textColor="@color/colorDarkGray"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/edDescription" />
+                app:layout_constraintTop_toBottomOf="@+id/edCount" />
 
             <Button
                 android:id="@+id/btnInProcess"
@@ -327,6 +354,9 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/textView8"
                     app:layout_constraintTop_toTopOf="parent" />
+
+
+
 
                 <EditText
                     android:id="@+id/edHourFrom"

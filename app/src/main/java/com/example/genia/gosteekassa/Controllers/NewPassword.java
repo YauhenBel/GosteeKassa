@@ -136,7 +136,7 @@ public class NewPassword extends AppCompatActivity {
         }
 
         ConnDB connDB = new ConnDB();
-        String ansver = connDB.sendRequest(input);
+        String ansver = connDB.sendRequest(input, this);
 
         if (ansver != null && !ansver.isEmpty()) {
                 Log.i("ConnToDB",

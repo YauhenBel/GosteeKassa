@@ -144,7 +144,11 @@ public class Registration extends AppCompatActivity {
         }
 
         connDB = new ConnDB();
-        connDB.sendRequest(input);
+        ansver =  connDB.sendRequest(input, this);
+        if (ansver.equals("1")){
+            workWithGui(7);
+            return;
+        }
         finish();
     }
 
@@ -183,6 +187,11 @@ public class Registration extends AppCompatActivity {
                     case 6:
                         Toast.makeText(getApplicationContext(),
                                 "Введенные вами пароли не совпадают.", Toast.LENGTH_LONG)
+                                .show();
+                        break;
+                    case 7:
+                        Toast.makeText(getApplicationContext(),
+                                "Пользователь с таким логином уже существует", Toast.LENGTH_LONG)
                                 .show();
                         break;
 

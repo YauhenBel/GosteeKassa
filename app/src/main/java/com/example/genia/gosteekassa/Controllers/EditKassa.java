@@ -1,11 +1,11 @@
 package com.example.genia.gosteekassa.Controllers;
 
 import android.annotation.SuppressLint;
+import android.app.DialogFragment;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -16,37 +16,41 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.example.genia.gosteekassa.ConnToDB.ConnDB;
+import com.example.genia.gosteekassa.Dialogs.Dialog1;
 import com.example.genia.gosteekassa.R;
 
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class EditKassa extends AppCompatActivity implements View.OnClickListener{
+public class EditKassa extends AppCompatActivity implements View.OnClickListener, Dialog1.ButtonOKListener{
 
     private static final String TAG = "EditKassa";
     private Button btnInProcess, btnInFinish, btnToSave;
     private ImageButton imbtnGetImage;
     private InputStream inputStream;
-    private String name, filePath, puth, nameOfShop = "", description = "", workerDay = "",
-    workerTime = "", typeOfCard = "";
+    private String name = "", filePath, puth, nameOfShop = "", description = "", workerDay = "",
+    workerTime = "", typeOfCard = "", input = "", countOfCircle = "";
     private CheckBox chBMonday, chBTuesday, chBWednesday, chBThursday, chBFriday, chBSaturday,
             chBSunday;
-    private EditText edHourFrom, edMinutesFrom, edHourTo, edMinutesTo, edNameOfShop, edDescription;
+    private EditText edHourFrom, edMinutesFrom, edHourTo, edMinutesTo, edNameOfShop, edDescription,
+    edCount;
     private Uri chosenImageUri;
     private SharedPreferences preferences;
-    private Boolean isReady = true;
+    private Boolean isReady = true, isAgree = false, imageIsSelected = false;
+    private DialogFragment dialogFragment;
 
     @SuppressLint("CutPasteId")
     @Override
@@ -76,16 +80,16 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         edMinutesFrom = findViewById(R.id.edMinutesFrom);
         edHourTo = findViewById(R.id.edHourTo);
         edMinutesTo = findViewById(R.id.edHourTo);
+        edCount = findViewById(R.id.edCount);
 
         btnInProcess.setOnClickListener(this);
         btnInFinish.setOnClickListener(this);
         btnToSave.setOnClickListener(this);
         imbtnGetImage.setOnClickListener(this);
 
+        dialogFragment = new Dialog1();
+
     }
-
-
-
 
     public void goBack(View view) {
         finish();
@@ -108,15 +112,19 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
             case R.id.btnToSave:
                 isReady = true;
                 workerDay = getWorkerDays();
-                Log.i(TAG, "onClick: workersDays: " + workerDay);
+                Log.i(TAG, "onClick: btnToSave-0");
                 getData();
-                getInputStream();
-                Log.i(TAG, "onClick: isReady-0: " + isReady);
-                if (isReady){
-                    Log.i(TAG, "onClick: isReady-1: " + isReady);
+                if (imageIsSelected && isReady) {
+                    if (!getInputStream()) break;
                     UploadFileAsync uploadFileAsync = new UploadFileAsync();
                     uploadFileAsync.execute();
+                    toStartingUpdateDB();
                 }
+                if (!isAgree){
+                    dialogFragment.show(getFragmentManager(), "dialog1");
+                }
+                if (isAgree && isReady) toStartingUpdateDB();
+
 
 
                 break;
@@ -128,8 +136,6 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         }
     }
 
-
-
     private void getData(){
         if (!edNameOfShop.getText().toString().isEmpty()){
             nameOfShop = edNameOfShop.getText().toString();
@@ -137,6 +143,7 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
             isReady = false;
             Toast.makeText(EditKassa.this, "Введите название заведения",
                     Toast.LENGTH_LONG).show();
+            return;
         }
         if (!edDescription.getText().toString().isEmpty()){
             description = edDescription.getText().toString();
@@ -144,6 +151,15 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
             isReady = false;
             Toast.makeText(EditKassa.this, "Введите описание",
                     Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (!edCount.getText().toString().isEmpty()){
+            countOfCircle = edCount.getText().toString();
+        }else {
+            isReady = false;
+            Toast.makeText(EditKassa.this, "Введите описание",
+                    Toast.LENGTH_LONG).show();
+            return;
         }
         String hourFrom = edHourFrom.getText().toString(),
                 minutesFrom = edMinutesFrom.getText().toString(),
@@ -169,6 +185,7 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
             isReady = false;
             Toast.makeText(EditKassa.this, "Введите корректное время работы",
                     Toast.LENGTH_LONG).show();
+            return;
         }
 
 
@@ -295,6 +312,7 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
                     puth = chosenImageUri.getEncodedPath();
                     Log.i(TAG, "uri1: " + puth);
                     imbtnGetImage.setImageURI(chosenImageUri);
+                    imageIsSelected = true;
                 }
                 break;
             }
@@ -302,27 +320,64 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
 
     }
 
-    private void getInputStream(){
+    private void toStartingUpdateDB(){
+        new Thread(new Runnable() {
+            @Override public void run() {
+                updateDB();
+            }
+        }).start();
+    }
+
+    private void updateDB(){
+
+        try {
+            String SERVER_NAME = "http://r2551241.beget.tech";
+            input = SERVER_NAME
+                    + "/gostee.php?action=insertNewShop&nameOfShop="
+                    + URLEncoder.encode(nameOfShop, "UTF-8")
+                    + "&description="
+                    + URLEncoder.encode(description, "UTF-8")
+                    + "&workerDay="
+                    + URLEncoder.encode(workerDay, "UTF-8")
+                    + "&workerTime="
+                    + URLEncoder.encode(workerTime, "UTF-8")
+                    + "&typeOfCard="
+                    + URLEncoder.encode(typeOfCard, "UTF-8")
+                    + "&countOfCircle="
+                    + URLEncoder.encode(countOfCircle, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        ConnDB connDB = new ConnDB();
+        String ansver = connDB.sendRequest(input, this);
+        Log.i(TAG, "updateDB: ansver: " +ansver);
+
+    }
+
+    private Boolean getInputStream(){
         String[] projection = {MediaStore.MediaColumns.DISPLAY_NAME};
         ContentResolver cr = getApplicationContext().getContentResolver();
-        Cursor metaCursor = null;
+        Cursor metaCursor;
         try {
-             cr.query(chosenImageUri, projection, null, null, null);
+            metaCursor = cr.query(chosenImageUri, projection, null, null, null);
         }catch (NullPointerException e){
             e.printStackTrace();
             Log.i(TAG, "inputStream: файл не выбран");
-            isReady = false;
-            Toast.makeText(EditKassa.this, "Введите название заведения",
-                    Toast.LENGTH_LONG).show();
-            return;
+
+            return false;
         }
-
-
         if (metaCursor != null) {
             try {
                 if (metaCursor.moveToFirst()) {
                     name = metaCursor.getString(0);
                     Log.i(TAG, "Имя файла: " + name);
+                    String [] strings = name.split("\\.");
+                    if (!strings[1].equals("png")) {
+                        Toast.makeText(EditKassa.this, "Выберите файл  формате PNG",
+                                Toast.LENGTH_LONG).show();
+                        return false;
+                    }
+
                 }
             } finally {
                 metaCursor.close();
@@ -337,6 +392,22 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
             e.printStackTrace();
             Log.i(TAG, "inputStream: файл не найден");
         }
+        try {
+            if (inputStream.available() >320000 ) {
+                Toast.makeText(EditKassa.this, "Выберите файл меньшего размера ",
+                        Toast.LENGTH_LONG).show();
+            }
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
+    @Override
+    public void onFinishButtonDialog(Boolean _isAgree) {
+        isAgree = _isAgree;
     }
 
     private class UploadFileAsync extends AsyncTask<String, Void, String> {
@@ -360,9 +431,7 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
                 Log.i(TAG, "doInBackground: Файл загружается...");
 
                 try {
-                    String upLoadServerUri = "http://r2551241.beget.tech/gosteeUploadImages.php?" +
-                            "name=Yauhen&id = "
-                            + URLEncoder.encode(preferences.getString("service_id", ""), "UTF-8");
+                    String upLoadServerUri = "http://r2551241.beget.tech/gosteeUploadImages.php?";
 
 // open a URL connection to the Servlet
 //FileInputStream fileInputStream = inputStream;

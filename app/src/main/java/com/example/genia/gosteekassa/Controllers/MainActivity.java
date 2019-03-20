@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         ConnDB connDB = new ConnDB();
-        String ansver = connDB.sendRequest(input);
+        String ansver = connDB.sendRequest(input, this);
 
         if (ansver != null && !ansver.isEmpty()) {
             Log.i("ConnDB", "+ Connect ---------- reply contains JSON:" + ansver);

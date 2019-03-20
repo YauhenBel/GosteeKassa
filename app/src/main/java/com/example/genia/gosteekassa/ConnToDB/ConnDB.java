@@ -1,19 +1,24 @@
 package com.example.genia.gosteekassa.ConnToDB;
 
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.UnknownHostException;
 
 public class ConnDB {
 
     private String  ansver  = "";
     private HttpURLConnection conn;
 
-    public String sendRequest(String input){
+    public String sendRequest(String input, final Context context){
         try {
 
             Log.i("ConnDB",
@@ -31,7 +36,17 @@ public class ConnDB {
             Log.i("ConnDB", "sendRequest: Answer from server (200 = ОК): "
                     + res.toString());
 
-        } catch (Exception e) {
+        } catch (UnknownHostException e){
+            Log.i("ConnDB",
+                    "Нет подключения к сети");
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override public void run() {
+                    Toast.makeText(context,
+                            "Нет подключения к сети", Toast.LENGTH_SHORT)
+                            .show();
+                }
+            });
+        } catch (Exception e ) {
             Log.i("ConnDB",
                     "sendRequest: Answer from server ERROR: "
                             + e.getMessage());
@@ -63,6 +78,6 @@ public class ConnDB {
             conn.disconnect();
         }
 
-      return ansver;
+        return ansver;
     }
 }
