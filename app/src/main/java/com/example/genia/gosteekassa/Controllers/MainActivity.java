@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void goToMainWorkScreen(){
-        Intent intent = new Intent(this, Statistics.class);
+        Intent intent = new Intent(this, Statistic.class);
         startActivity(intent);
     }
 

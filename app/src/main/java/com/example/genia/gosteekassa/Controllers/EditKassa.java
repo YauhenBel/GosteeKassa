@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -42,15 +43,15 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
     private ImageButton imbtnGetImage;
     private InputStream inputStream;
     private String name = "", filePath, puth, nameOfShop = "", description = "", workerDay = "",
-    workerTime = "", typeOfCard = "", input = "", countOfCircle = "";
+    workerTime = "", typeOfCard = "", input = "", countOfCircle = "", service_id = "";
     private CheckBox chBMonday, chBTuesday, chBWednesday, chBThursday, chBFriday, chBSaturday,
             chBSunday;
     private EditText edHourFrom, edMinutesFrom, edHourTo, edMinutesTo, edNameOfShop, edDescription,
     edCount;
     private Uri chosenImageUri;
-    private SharedPreferences preferences;
     private Boolean isReady = true, isAgree = false, imageIsSelected = false;
     private DialogFragment dialogFragment;
+    private ConstraintLayout constraintLayout;
 
     @SuppressLint("CutPasteId")
     @Override
@@ -58,8 +59,8 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_kassa);
 
-        preferences = getSharedPreferences("info",MODE_PRIVATE);
-        String id = preferences.getString("service_id", "");
+        SharedPreferences preferences = getSharedPreferences("info", MODE_PRIVATE);
+        service_id = preferences.getString("service_id", "");
 
         btnInProcess = findViewById(R.id.btnInProcess);
         btnInFinish = findViewById(R.id.btnInFinish);
@@ -89,6 +90,9 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
 
         dialogFragment = new Dialog1();
 
+        constraintLayout = findViewById(R.id.editCard);
+        constraintLayout.setVisibility(View.INVISIBLE);
+
     }
 
     public void goBack(View view) {
@@ -110,23 +114,8 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
                 typeOfCard = "1";
                 break;
             case R.id.btnToSave:
-                isReady = true;
-                workerDay = getWorkerDays();
-                Log.i(TAG, "onClick: btnToSave-0");
-                getData();
-                if (imageIsSelected && isReady) {
-                    if (!getInputStream()) break;
-                    UploadFileAsync uploadFileAsync = new UploadFileAsync();
-                    uploadFileAsync.execute();
-                    toStartingUpdateDB();
-                }
-                if (!isAgree){
-                    dialogFragment.show(getFragmentManager(), "dialog1");
-                }
-                if (isAgree && isReady) toStartingUpdateDB();
-
-
-
+                MyThread thread = new MyThread();
+                thread.start();
                 break;
             case R.id.imbtnGetImage:
                 Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -136,29 +125,120 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         }
     }
 
+    private class MyThread extends Thread{
+        @Override
+        public void run() {
+            super.run();
+            workWithGUI(0);
+            toSaveData();
+            workWithGUI( 1);
+
+        }
+    }
+
+    private void workWithGUI(final int i){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                switch (i){
+                    case 0:
+                        constraintLayout.setVisibility(View.VISIBLE);
+                        break;
+                    case 1:
+                        constraintLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case 2:
+                        Toast.makeText(EditKassa.this, "Выберите файл  формате PNG",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 3:
+                        Toast.makeText(EditKassa.this, "Выберите файл меньшего размера",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 4:
+                        Toast.makeText(EditKassa.this, "Введите название заведения",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 5:
+                        Toast.makeText(EditKassa.this, "Введите описание",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 6:
+                        Toast.makeText(EditKassa.this, "Введите описание",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 7:
+                        Toast.makeText(EditKassa.this, "Введите корректное время работы",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 8:
+                        Toast.makeText(EditKassa.this, "Укажите рабочие дни",
+                                Toast.LENGTH_LONG).show();
+                        break;
+
+
+
+
+
+                }
+            }
+        });
+
+    }
+
+    private void toSaveData(){
+        Log.i(TAG, "onClick: btnToSave-0");
+        isReady = true;
+        workerDay = getWorkerDays();
+        Log.i(TAG, "toSaveData: workerDay: " + workerDay);
+        getData();
+        if (imageIsSelected && isReady) {
+            Log.i(TAG, "toSaveData: imageIsSelected && isReady");
+            if (!getInputStream())
+            {
+                Log.i(TAG, "toSaveData: !getInputStream()");
+                return;
+            }
+            UploadFileAsync uploadFileAsync = new UploadFileAsync();
+            uploadFileAsync.execute();
+            updateDB();
+            return;
+        }else {
+            Log.i(TAG, "onClick: error-0");
+        }
+        if (!isAgree){
+            Log.i(TAG, "toSaveData: !isAgree");
+            dialogFragment.show(getFragmentManager(), "dialog1");
+        }else {
+            Log.i(TAG, "onClick: error-1");
+        }
+        if (isAgree && isReady)
+        {
+            Log.i(TAG, "toSaveData: isAgree && isReady");
+            updateDB();
+        }
+    }
+
     private void getData(){
         if (!edNameOfShop.getText().toString().isEmpty()){
             nameOfShop = edNameOfShop.getText().toString();
         }else {
             isReady = false;
-            Toast.makeText(EditKassa.this, "Введите название заведения",
-                    Toast.LENGTH_LONG).show();
+            workWithGUI(4);
             return;
         }
         if (!edDescription.getText().toString().isEmpty()){
             description = edDescription.getText().toString();
         }else {
             isReady = false;
-            Toast.makeText(EditKassa.this, "Введите описание",
-                    Toast.LENGTH_LONG).show();
+            workWithGUI(5);
             return;
         }
         if (!edCount.getText().toString().isEmpty()){
             countOfCircle = edCount.getText().toString();
         }else {
             isReady = false;
-            Toast.makeText(EditKassa.this, "Введите описание",
-                    Toast.LENGTH_LONG).show();
+            workWithGUI(6);
             return;
         }
         String hourFrom = edHourFrom.getText().toString(),
@@ -183,13 +263,9 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
 
         }else {
             isReady = false;
-            Toast.makeText(EditKassa.this, "Введите корректное время работы",
-                    Toast.LENGTH_LONG).show();
+            workWithGUI(7);
             return;
         }
-
-
-
     }
 
     private String getWorkerDays(){
@@ -215,8 +291,7 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         }
 
         if (!isAllNotisCheck){
-            Toast.makeText(EditKassa.this, "Укажите рабочие дни",
-                    Toast.LENGTH_LONG).show();
+            workWithGUI(8);
             isReady = false;
             return "";
         }
@@ -292,6 +367,7 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         Log.i(TAG, "requestCode: " + requestCode);
 
         switch(requestCode)
@@ -300,9 +376,7 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
             {
                 if (resultCode == RESULT_OK)
                 {
-
                     chosenImageUri = data.getData();
-
                     final Cursor cursor = getContentResolver().query( chosenImageUri,
                             null, null, null, null );
                     assert cursor != null;
@@ -320,20 +394,15 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
 
     }
 
-    private void toStartingUpdateDB(){
-        new Thread(new Runnable() {
-            @Override public void run() {
-                updateDB();
-            }
-        }).start();
-    }
+
 
     private void updateDB(){
 
         try {
+
             String SERVER_NAME = "http://r2551241.beget.tech";
             input = SERVER_NAME
-                    + "/gostee.php?action=insertNewShop&nameOfShop="
+                    + "/gosteekassa.php?action=updateCard&nameOfShop="
                     + URLEncoder.encode(nameOfShop, "UTF-8")
                     + "&description="
                     + URLEncoder.encode(description, "UTF-8")
@@ -344,7 +413,9 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
                     + "&typeOfCard="
                     + URLEncoder.encode(typeOfCard, "UTF-8")
                     + "&countOfCircle="
-                    + URLEncoder.encode(countOfCircle, "UTF-8");
+                    + URLEncoder.encode(countOfCircle, "UTF-8")
+                    + "&service_id="
+                    + URLEncoder.encode(service_id, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -366,15 +437,17 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
 
             return false;
         }
+
         if (metaCursor != null) {
             try {
                 if (metaCursor.moveToFirst()) {
-                    name = metaCursor.getString(0);
+                    //name = metaCursor.getString(0);
+                    name = service_id + ".png";
                     Log.i(TAG, "Имя файла: " + name);
                     String [] strings = name.split("\\.");
                     if (!strings[1].equals("png")) {
-                        Toast.makeText(EditKassa.this, "Выберите файл  формате PNG",
-                                Toast.LENGTH_LONG).show();
+                        Log.i(TAG, "Выберите файл  формате PNG");
+                        workWithGUI(2);
                         return false;
                     }
 
@@ -384,20 +457,24 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
             }
         }
 
-
         try {
             assert chosenImageUri != null;
             inputStream = cr.openInputStream(chosenImageUri);
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             Log.i(TAG, "inputStream: файл не найден");
         }
+
+
+
         try {
             if (inputStream.available() >320000 ) {
-                Toast.makeText(EditKassa.this, "Выберите файл меньшего размера ",
-                        Toast.LENGTH_LONG).show();
+                Log.i(TAG, "inputStream: Выберите файл меньшего размера ");
+                workWithGUI(3);
+                return false;
             }
-            return false;
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -418,6 +495,7 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
             Log.i(TAG, "doInBackground: Загрузка файла на сервер...");
             try {
                 String sourceFileUri = name;
+
 
                 HttpURLConnection conn = null;
                 DataOutputStream dos = null;
