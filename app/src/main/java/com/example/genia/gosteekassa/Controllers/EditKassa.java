@@ -21,11 +21,17 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.example.genia.gosteekassa.ConnToDB.ConnDB;
 import com.example.genia.gosteekassa.Dialogs.Dialog1;
 import com.example.genia.gosteekassa.R;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
@@ -93,6 +99,135 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         constraintLayout = findViewById(R.id.editCard);
         constraintLayout.setVisibility(View.INVISIBLE);
 
+        GetInfo getInfo = new GetInfo();
+        getInfo.start();
+
+    }
+
+    private class GetInfo extends Thread{
+        @Override
+        public void run() {
+            super.run();
+            getAboutCard();
+        }
+    }
+
+    private void getAboutCard() {
+
+        try {
+
+            String SERVER_NAME = "http://r2551241.beget.tech";
+            input = SERVER_NAME
+                    + "/gosteekassa.php?action=getAboutCard&service_id="
+                    + URLEncoder.encode(service_id, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        ConnDB connDB = new ConnDB();
+        String ansver = connDB.sendRequest(input, this);
+        Log.i(TAG, "updateDB: ansver: " +ansver);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = null;
+        try {
+            jsonNode = objectMapper.readTree(ansver);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        JsonNode working_hours = jsonNode.path("working_hours");
+        JsonNode working_days = jsonNode.path("working_days");
+        JsonNode description = jsonNode.path("description");
+        JsonNode circle_number = jsonNode.path("circle_number");
+        JsonNode name = jsonNode.path("name");
+        JsonNode type = jsonNode.path("type");
+        JsonNode individual_icon = jsonNode.path("individual_icon");
+
+        toPutOfWorkerTimes(working_hours.asText());
+        toPutWorkerDays(working_days.asText());
+        edDescription.setText(description.asText());
+        edCount.setText(circle_number.asText());
+        edNameOfShop.setText(name.asText());
+        if (type.asText().equals("0"))
+            btnInFinish.setBackground(getDrawable(R.drawable.button_states_two));
+        else
+            btnInFinish.setBackground(getDrawable(R.drawable.button_states_three));
+
+        toPutImageIntoImageButton(individual_icon);
+
+
+
+    }
+
+    private void toPutImageIntoImageButton(final JsonNode individual_icon){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override public void run() {
+                Glide.with(EditKassa.this)
+                        .load(getUrlWithHeaders(individual_icon.asText()))
+                        .into(imbtnGetImage);
+            }
+        });
+    }
+
+    private void toPutOfWorkerTimes(String working_hours){
+
+
+
+    }
+
+    private void toPutWorkerDays(String workersDays){
+        if (workersDays.equals("")) return;
+
+        Boolean [] week = {false, false, false, false, false, false, false};
+        if (workersDays.equals("Ежедневно")){
+            for (int i = 0; i < 7; i++){
+                week[i] = true;
+            }
+        }else {
+            String [] str = workersDays.split(",");
+            String [] str2;
+            for (String str1:str) {
+                str2 = str1.split("-");
+                if (str2.length == 2){
+                    for (int i = getNumberOfDay(str2[0].trim());
+                         i <= getNumberOfDay(str2[1].trim()); i++) {
+                        week[i] = true;
+                    }
+                }
+                if (str2.length == 1)
+                    week[getNumberOfDay(str2[0].trim())] = true;
+            }
+        }
+        for (Boolean boll:week) System.out.println("week = " + boll);
+
+        if (week[0]) chBMonday.setChecked(true); else chBMonday.setChecked(false);
+        if (week[1]) chBTuesday.setChecked(true); else chBTuesday.setChecked(false);
+        if (week[2]) chBWednesday.setChecked(true); else chBWednesday.setChecked(false);
+        if (week[3]) chBThursday.setChecked(true); else chBThursday.setChecked(false);
+        if (week[4]) chBFriday.setChecked(true); else chBFriday.setChecked(false);
+        if (week[5]) chBSaturday.setChecked(true); else chBSaturday.setChecked(false);
+        if (week[6]) chBSunday.setChecked(true); else chBSunday.setChecked(false);
+
+    }
+
+    private static int getNumberOfDay(String str){
+        switch (str){
+            case "ПН":
+                return 0;
+            case "ВТ":
+                return 1;
+            case "СР":
+                return 2;
+            case "ЧТ":
+                return 3;
+            case "ПТ":
+                return 4;
+            case "СБ":
+                return 5;
+            case "ВС":
+                return 6;
+
+        }
+        return 7;
     }
 
     public void goBack(View view) {
@@ -175,11 +310,6 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
                         Toast.makeText(EditKassa.this, "Укажите рабочие дни",
                                 Toast.LENGTH_LONG).show();
                         break;
-
-
-
-
-
                 }
             }
         });
@@ -305,10 +435,9 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
 
         if (status) return "Ежедневно";
 
-        for (int i = 0; i < 7; i++){
+        for (int i = 0; i <= 6; i++){
             Log.i(TAG, "getWorkerDays: [" + i + "] = " + week[i]);
             if (!fDay && week[i]){
-                Log.i(TAG, "getWorkerDays: sds");
                 firsDay = getDay(i);
                 if (isLast) workerDays += ", ";
                 isLast = false;
@@ -634,5 +763,12 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         @Override
         protected void onProgressUpdate(Void... values) {
         }
+    }
+
+    private GlideUrl getUrlWithHeaders (String url){
+        return new GlideUrl(url, new LazyHeaders.Builder()
+                .addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0)" +
+                        " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36")
+                .build());
     }
 }
