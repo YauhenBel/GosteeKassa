@@ -2,31 +2,42 @@ package com.example.genia.gosteekassa.Controllers;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.genia.gosteekassa.ConnToDB.ConnDB;
 import com.example.genia.gosteekassa.R;
 import com.google.zxing.Result;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
 public class QrScanner extends AppCompatActivity implements ZXingScannerView.ResultHandler{
 
+    private static final String TAG = "QrScanner";
     private ZXingScannerView mScanner;
-    private Button btnConfirm;
     private TextView tvStatus, tvResult;
+    private String mResult = "";
+    private String service_id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qr_scanner);
+
+        SharedPreferences preferences = getSharedPreferences("info", MODE_PRIVATE);
+        service_id = preferences.getString("service_id", "");
 
         int permissionStatus = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
 
@@ -38,7 +49,7 @@ public class QrScanner extends AppCompatActivity implements ZXingScannerView.Res
                     1);
         }
 
-        btnConfirm = findViewById(R.id.btnConfirm);
+        Button btnConfirm = findViewById(R.id.btnConfirm);
 
         mScanner = findViewById(R.id.zxscan);
 
@@ -51,11 +62,38 @@ public class QrScanner extends AppCompatActivity implements ZXingScannerView.Res
         btnConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                MyThread myThread = new MyThread();
+                myThread.start();
                 finish();
             }
         });
 
+    }
 
+    private void changeMarkForUser(){
+        String input = "";
+        try {
+
+            String SERVER_NAME = "http://r2551241.beget.tech";
+            input = SERVER_NAME
+                    + "/gosteekassa.php?action=changeMarkForUser&idUser="
+                    + URLEncoder.encode(mResult, "UTF-8")
+                    + "&service_id="
+                    + URLEncoder.encode(service_id, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        ConnDB connDB = new ConnDB();
+        String ansver = connDB.sendRequest(input, this);
+        Log.i(TAG, "updateDB: ansver: " +ansver);
+    }
+
+    class MyThread extends Thread{
+        @Override
+        public void run() {
+            super.run();
+            changeMarkForUser();
+        }
     }
 
     @Override
@@ -91,6 +129,7 @@ public class QrScanner extends AppCompatActivity implements ZXingScannerView.Res
     public void handleResult(Result result) {
         tvStatus.setText("Сканирование выполнено.");
         tvResult.setText("ID пользователя: " + result);
+        mResult = String.valueOf(result);
 
     }
 }

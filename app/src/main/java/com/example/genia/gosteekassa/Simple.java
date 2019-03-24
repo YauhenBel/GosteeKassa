@@ -8,8 +8,18 @@ public class Simple {
 
     public static void main(String[] args) {
        // getWorkerDays("ПН, СР, ПТ, ВС");
-        System.out.println("main: " + getWorkerDays());
+        System.out.println("08:00 - 22:30");
 
+    }
+
+    private void toPutOfWorkerTimes(String working_hours){
+        String [] twoTimes = working_hours.split("-");
+        twoTimes[0].trim();
+        twoTimes[1].trim();
+        String [] timeFrom = twoTimes[0].split(":");
+        String [] timeTo = twoTimes[1].split(":");
+        System.out.println("Время начало работы: " + timeFrom[0] + ":" + timeFrom[1]);
+        System.out.println("Время окончания работы: " + timeTo[0] + ":" + timeTo[1]);
     }
 
 
@@ -20,10 +30,10 @@ public class Simple {
         Boolean [] week = {false, false, false, false, false, false, false};
 
         week[0] = true;
-        week[1] = true;
+        week[1] = false;
         week[2] = true;
-        week[3] = true;
-        week[4] = false;
+        week[3] = false;
+        week[4] = true;
         week[5] = false;
         week[6] = true;
 
@@ -55,6 +65,10 @@ public class Simple {
             if (!fDay && week[i]){
                 firsDay = getDay(i);
                 if (isLast) workerDays += ", ";
+                if (i == 6) {
+                    workerDays += firsDay;
+                    break;
+                }
                 isLast = false;
                 fDay = true;
                 if (i < 6 && !week[i+1]){
@@ -62,7 +76,8 @@ public class Simple {
                         workerDays +=firsDay;
                         fDay = false;
                     }else {
-                        workerDays +=firsDay + ", ";
+                        workerDays +=firsDay;
+                        isLast = true;
                         fDay = false;
                     }
 

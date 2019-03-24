@@ -55,7 +55,7 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
     private EditText edHourFrom, edMinutesFrom, edHourTo, edMinutesTo, edNameOfShop, edDescription,
     edCount;
     private Uri chosenImageUri;
-    private Boolean isReady = true, isAgree = false, imageIsSelected = false;
+    private Boolean isAgree = false, imageIsSelected = false, isImage = false;
     private DialogFragment dialogFragment;
     private ConstraintLayout constraintLayout;
 
@@ -86,7 +86,7 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         edHourFrom = findViewById(R.id.edHourFrom);
         edMinutesFrom = findViewById(R.id.edMinutesFrom);
         edHourTo = findViewById(R.id.edHourTo);
-        edMinutesTo = findViewById(R.id.edHourTo);
+        edMinutesTo = findViewById(R.id.edMinutesTo);
         edCount = findViewById(R.id.edCount);
 
         btnInProcess.setOnClickListener(this);
@@ -103,6 +103,33 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         getInfo.start();
 
     }
+
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+        switch (id){
+            case R.id.btnInProcess:
+                btnInProcess.setBackground(getDrawable(R.drawable.button_states_three));
+                btnInFinish.setBackground(getDrawable(R.drawable.button_states_two));
+                typeOfCard = "0";
+                break;
+            case R.id.btnInFinish:
+                btnInProcess.setBackground(getDrawable(R.drawable.button_states_two));
+                btnInFinish.setBackground(getDrawable(R.drawable.button_states_three));
+                typeOfCard = "1";
+                break;
+            case R.id.btnToSave:
+                MyThread thread = new MyThread();
+                thread.start();
+                break;
+            case R.id.imbtnGetImage:
+                Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                photoPickerIntent.setType("image/*");
+                startActivityForResult(photoPickerIntent, 1);
+                break;
+        }
+    }
+
 
     private class GetInfo extends Thread{
         @Override
@@ -147,12 +174,20 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         edDescription.setText(description.asText());
         edCount.setText(circle_number.asText());
         edNameOfShop.setText(name.asText());
-        if (type.asText().equals("0"))
+        Log.i(TAG, "getAboutCard: type.asText(): "  + type.asText());
+        if (type.asText().equals("0")) {
+            Log.i(TAG, "getAboutCard: type.asText() = 0");
+            btnInProcess.setBackground(getDrawable(R.drawable.button_states_three));
             btnInFinish.setBackground(getDrawable(R.drawable.button_states_two));
-        else
+            typeOfCard = "0";
+        }else{
+            Log.i(TAG, "getAboutCard: type.asText() = 1");
+            btnInProcess.setBackground(getDrawable(R.drawable.button_states_two));
             btnInFinish.setBackground(getDrawable(R.drawable.button_states_three));
+            typeOfCard = "1";
+        }
 
-        toPutImageIntoImageButton(individual_icon);
+        if (!individual_icon.asText().isEmpty()) toPutImageIntoImageButton(individual_icon);
 
 
 
@@ -164,12 +199,22 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
                 Glide.with(EditKassa.this)
                         .load(getUrlWithHeaders(individual_icon.asText()))
                         .into(imbtnGetImage);
+                isImage = true;
             }
         });
     }
 
     private void toPutOfWorkerTimes(String working_hours){
-
+        if (working_hours.equals("")) return;
+        String [] twoTimes = working_hours.split("-");
+        twoTimes[0].trim();
+        twoTimes[1].trim();
+        String [] timeFrom = twoTimes[0].split(":");
+        String [] timeTo = twoTimes[1].split(":");
+        edHourFrom.setText(timeFrom[0].trim());
+        edMinutesFrom.setText(timeFrom[1].trim());
+        edHourTo.setText(timeTo[0].trim());
+        edMinutesTo.setText(timeTo[1].trim());
 
 
     }
@@ -234,31 +279,6 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         finish();
     }
 
-    @Override
-    public void onClick(View view) {
-        int id = view.getId();
-        switch (id){
-            case R.id.btnInProcess:
-                btnInProcess.setBackground(getDrawable(R.drawable.button_states_three));
-                btnInFinish.setBackground(getDrawable(R.drawable.button_states_two));
-                typeOfCard = "0";
-                break;
-            case R.id.btnInFinish:
-                btnInProcess.setBackground(getDrawable(R.drawable.button_states_two));
-                btnInFinish.setBackground(getDrawable(R.drawable.button_states_three));
-                typeOfCard = "1";
-                break;
-            case R.id.btnToSave:
-                MyThread thread = new MyThread();
-                thread.start();
-                break;
-            case R.id.imbtnGetImage:
-                Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
-                photoPickerIntent.setType("image/*");
-                startActivityForResult(photoPickerIntent, 1);
-                break;
-        }
-    }
 
     private class MyThread extends Thread{
         @Override
@@ -271,120 +291,108 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         }
     }
 
-    private void workWithGUI(final int i){
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                switch (i){
-                    case 0:
-                        constraintLayout.setVisibility(View.VISIBLE);
-                        break;
-                    case 1:
-                        constraintLayout.setVisibility(View.INVISIBLE);
-                        break;
-                    case 2:
-                        Toast.makeText(EditKassa.this, "Выберите файл  формате PNG",
-                                Toast.LENGTH_LONG).show();
-                        break;
-                    case 3:
-                        Toast.makeText(EditKassa.this, "Выберите файл меньшего размера",
-                                Toast.LENGTH_LONG).show();
-                        break;
-                    case 4:
-                        Toast.makeText(EditKassa.this, "Введите название заведения",
-                                Toast.LENGTH_LONG).show();
-                        break;
-                    case 5:
-                        Toast.makeText(EditKassa.this, "Введите описание",
-                                Toast.LENGTH_LONG).show();
-                        break;
-                    case 6:
-                        Toast.makeText(EditKassa.this, "Введите описание",
-                                Toast.LENGTH_LONG).show();
-                        break;
-                    case 7:
-                        Toast.makeText(EditKassa.this, "Введите корректное время работы",
-                                Toast.LENGTH_LONG).show();
-                        break;
-                    case 8:
-                        Toast.makeText(EditKassa.this, "Укажите рабочие дни",
-                                Toast.LENGTH_LONG).show();
-                        break;
-                }
-            }
-        });
 
-    }
 
     private void toSaveData(){
         Log.i(TAG, "onClick: btnToSave-0");
-        isReady = true;
-        workerDay = getWorkerDays();
-        Log.i(TAG, "toSaveData: workerDay: " + workerDay);
-        getData();
-        if (imageIsSelected && isReady) {
-            Log.i(TAG, "toSaveData: imageIsSelected && isReady");
-            if (!getInputStream())
-            {
-                Log.i(TAG, "toSaveData: !getInputStream()");
-                return;
-            }
+
+        if (!imageIsSelected && !isImage && !isAgree){
+            dialogFragment.show(getFragmentManager(), "dialog1");
+            return;
+        }
+        if (imageIsSelected  && getData()) {
             UploadFileAsync uploadFileAsync = new UploadFileAsync();
             uploadFileAsync.execute();
             updateDB();
+            workWithGUI(9);
             return;
-        }else {
-            Log.i(TAG, "onClick: error-0");
         }
-        if (!isAgree){
-            Log.i(TAG, "toSaveData: !isAgree");
-            dialogFragment.show(getFragmentManager(), "dialog1");
-        }else {
-            Log.i(TAG, "onClick: error-1");
-        }
-        if (isAgree && isReady)
-        {
-            Log.i(TAG, "toSaveData: isAgree && isReady");
+        if ((isImage || isAgree) && getData()){
             updateDB();
+            workWithGUI(9);
         }
     }
 
-    private void getData(){
+    private void updateDB(){
+
+        try {
+
+            String SERVER_NAME = "http://r2551241.beget.tech";
+            input = SERVER_NAME
+                    + "/gosteekassa.php?action=updateCard&nameOfShop="
+                    + URLEncoder.encode(nameOfShop, "UTF-8")
+                    + "&description="
+                    + URLEncoder.encode(description, "UTF-8")
+                    + "&workerDay="
+                    + URLEncoder.encode(workerDay, "UTF-8")
+                    + "&workerTime="
+                    + URLEncoder.encode(workerTime, "UTF-8")
+                    + "&typeOfCard="
+                    + URLEncoder.encode(typeOfCard, "UTF-8")
+                    + "&countOfCircle="
+                    + URLEncoder.encode(countOfCircle, "UTF-8")
+                    + "&service_id="
+                    + URLEncoder.encode(service_id, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        ConnDB connDB = new ConnDB();
+        String ansver = connDB.sendRequest(input, this);
+        Log.i(TAG, "updateDB: ansver: " +ansver);
+
+    }
+
+    private Boolean getData(){
         if (!edNameOfShop.getText().toString().isEmpty()){
             nameOfShop = edNameOfShop.getText().toString();
         }else {
-            isReady = false;
             workWithGUI(4);
-            return;
+            return false;
         }
         if (!edDescription.getText().toString().isEmpty()){
             description = edDescription.getText().toString();
         }else {
-            isReady = false;
             workWithGUI(5);
-            return;
+            return false;
         }
         if (!edCount.getText().toString().isEmpty()){
+            if (!TextUtils.isDigitsOnly(edCount.getText().toString().trim())){
+                workWithGUI(12);
+                return false;
+            }
+            if (edCount.getText().toString().equals("0")){
+                workWithGUI(13);
+                return false;
+            }
+
             countOfCircle = edCount.getText().toString();
         }else {
-            isReady = false;
             workWithGUI(6);
-            return;
+            return false;
         }
+
+        if (!getWorkerDays()) return false;
+
         String hourFrom = edHourFrom.getText().toString(),
                 minutesFrom = edMinutesFrom.getText().toString(),
                 hourTo = edHourTo.getText().toString(),
                 minutesTo = edMinutesTo.getText().toString();
 
-        if (!hourFrom.isEmpty() &&
-                !minutesFrom.isEmpty() &&
-                !hourTo.isEmpty()
-                && !minutesTo.isEmpty()
-                && TextUtils.isDigitsOnly(hourFrom)
-                && TextUtils.isDigitsOnly(minutesFrom)
-                && TextUtils.isDigitsOnly(hourTo)
-                && TextUtils.isDigitsOnly(minutesTo)
-                && hourFrom.length() == 2
+        if (hourFrom.isEmpty() || minutesFrom.isEmpty() ||
+                hourTo.isEmpty() || minutesTo.isEmpty()){
+            workWithGUI(10);
+            return false;
+        }
+
+        if (!TextUtils.isDigitsOnly(hourFrom.trim())
+                || !TextUtils.isDigitsOnly(minutesFrom.trim())
+                || !TextUtils.isDigitsOnly(hourTo.trim())
+                || !TextUtils.isDigitsOnly(minutesTo.trim())){
+            workWithGUI(11);
+            return false;
+        }
+
+        if (hourFrom.length() == 2
                 && minutesFrom.length() == 2
                 && hourTo.length() == 2
                 && minutesTo.length() == 2){
@@ -392,15 +400,15 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
             workerTime = hourFrom + ":" + minutesFrom + " - " + hourTo + ":" + minutesTo;
 
         }else {
-            isReady = false;
             workWithGUI(7);
-            return;
+            return false;
         }
+        return true;
     }
 
-    private String getWorkerDays(){
+    private Boolean getWorkerDays(){
         String workerDays = "", firsDay = "", lastDay = "";
-        Boolean fDay = false, lDay = false, status = true, isLast = false, isAllNotisCheck = false;
+        Boolean fDay = false, lDay = false, status = true, isLast = false, isAllNotIsCheck = false;
         Boolean [] week = {false, false, false, false, false, false, false};
 
         if (chBMonday.isChecked()) week[0] = true;
@@ -411,19 +419,15 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         if (chBSaturday.isChecked()) week[5] = true;
         if (chBSunday.isChecked()) week[6] = true;
 
-
-
-        for (int i = 0; i < 7; i++){
+        for (int i = 0; i <= 6; i++){
             if (week[i]){
-                isAllNotisCheck = true;
+                isAllNotIsCheck = true;
                 break;
             }
         }
-
-        if (!isAllNotisCheck){
+        if (!isAllNotIsCheck){
             workWithGUI(8);
-            isReady = false;
-            return "";
+            return false;
         }
 
         for (int i = 0; i < 7; i++){
@@ -433,13 +437,17 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
             }
         }
 
-        if (status) return "Ежедневно";
+        if (status) workerDay = "Ежедневно";
 
         for (int i = 0; i <= 6; i++){
-            Log.i(TAG, "getWorkerDays: [" + i + "] = " + week[i]);
+            System.out.println("getWorkerDays: [" + i + "] = " + week[i]);
             if (!fDay && week[i]){
                 firsDay = getDay(i);
                 if (isLast) workerDays += ", ";
+                if (i == 6) {
+                    workerDays += firsDay;
+                    break;
+                }
                 isLast = false;
                 fDay = true;
                 if (i < 6 && !week[i+1]){
@@ -447,7 +455,8 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
                         workerDays +=firsDay;
                         fDay = false;
                     }else {
-                        workerDays +=firsDay + ",";
+                        workerDays +=firsDay;
+                        isLast = true;
                         fDay = false;
                     }
 
@@ -469,7 +478,9 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
 
         }
 
-        return workerDays;
+        workerDay = workerDays;
+
+        return true;
     }
 
     private String getDay(int i){
@@ -515,42 +526,11 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
                     puth = chosenImageUri.getEncodedPath();
                     Log.i(TAG, "uri1: " + puth);
                     imbtnGetImage.setImageURI(chosenImageUri);
-                    imageIsSelected = true;
+                    if (getInputStream()) imageIsSelected = true;
                 }
                 break;
             }
         }
-
-    }
-
-
-
-    private void updateDB(){
-
-        try {
-
-            String SERVER_NAME = "http://r2551241.beget.tech";
-            input = SERVER_NAME
-                    + "/gosteekassa.php?action=updateCard&nameOfShop="
-                    + URLEncoder.encode(nameOfShop, "UTF-8")
-                    + "&description="
-                    + URLEncoder.encode(description, "UTF-8")
-                    + "&workerDay="
-                    + URLEncoder.encode(workerDay, "UTF-8")
-                    + "&workerTime="
-                    + URLEncoder.encode(workerTime, "UTF-8")
-                    + "&typeOfCard="
-                    + URLEncoder.encode(typeOfCard, "UTF-8")
-                    + "&countOfCircle="
-                    + URLEncoder.encode(countOfCircle, "UTF-8")
-                    + "&service_id="
-                    + URLEncoder.encode(service_id, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        ConnDB connDB = new ConnDB();
-        String ansver = connDB.sendRequest(input, this);
-        Log.i(TAG, "updateDB: ansver: " +ansver);
 
     }
 
@@ -611,6 +591,8 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
         return true;
     }
 
+
+
     @Override
     public void onFinishButtonDialog(Boolean _isAgree) {
         isAgree = _isAgree;
@@ -638,7 +620,9 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
                 Log.i(TAG, "doInBackground: Файл загружается...");
 
                 try {
-                    String upLoadServerUri = "http://r2551241.beget.tech/gosteeUploadImages.php?";
+                    String upLoadServerUri = "http://r2551241.beget.tech/gosteeUploadImages.php?"
+                            + "service_id="
+                            + URLEncoder.encode(service_id, "UTF-8");
 
 // open a URL connection to the Servlet
 //FileInputStream fileInputStream = inputStream;
@@ -770,5 +754,72 @@ public class EditKassa extends AppCompatActivity implements View.OnClickListener
                 .addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0)" +
                         " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36")
                 .build());
+    }
+
+    private void workWithGUI(final int i){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                switch (i){
+                    case 0:
+                        constraintLayout.setVisibility(View.VISIBLE);
+                        break;
+                    case 1:
+                        constraintLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case 2:
+                        Toast.makeText(EditKassa.this, "Выберите файл  формате PNG",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 3:
+                        Toast.makeText(EditKassa.this, "Выберите файл меньшего размера",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 4:
+                        Toast.makeText(EditKassa.this, "Введите название заведения",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 5:
+                        Toast.makeText(EditKassa.this, "Введите описание",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 6:
+                        Toast.makeText(EditKassa.this, "Введите описание",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 7:
+                        Toast.makeText(EditKassa.this, "Цифры должны быть двузначными",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 8:
+                        Toast.makeText(EditKassa.this, "Укажите рабочие дни",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 9:
+                        Toast.makeText(EditKassa.this, "Сохранено",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 10:
+                        Toast.makeText(EditKassa.this, "Укажите время работы",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 11:
+                        Toast.makeText(EditKassa.this, "Время должно состоять из цифр",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 12:
+                        Toast.makeText(EditKassa.this, "Количество отметок нужно" +
+                                        " указать в виде числа",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                    case 13:
+                        Toast.makeText(EditKassa.this, "Количество отметок должно" +
+                                        " быть быть больше",
+                                Toast.LENGTH_LONG).show();
+                        break;
+                }
+            }
+        });
+
     }
 }

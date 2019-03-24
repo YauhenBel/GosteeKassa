@@ -27,6 +27,7 @@ public class Dialog1 extends DialogFragment implements View.OnClickListener{
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.dialog, null);
         v.findViewById(R.id.btnOKDialog).setOnClickListener(this);
+        v.findViewById(R.id.btnNotOKDialog).setOnClickListener(this);
 
 
         Glide.with(this)
@@ -38,7 +39,15 @@ public class Dialog1 extends DialogFragment implements View.OnClickListener{
 
     @Override
     public void onClick(View view) {
-        isAgree = true;
+        switch (view.getId()){
+            case R.id.btnOKDialog:
+                isAgree = true;
+                break;
+            case R.id.btnNotOKDialog:
+                isAgree = false;
+                break;
+        }
+
         ButtonOKListener buttonOKListener = (ButtonOKListener) getActivity();
         buttonOKListener.onFinishButtonDialog(isAgree);
         dismiss();
