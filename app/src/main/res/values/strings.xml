@@ -30,5 +30,6 @@
     <string name="inProcess">В ПРОЦЕССЕ</string>
     <string name="inFinish">В КОНЦЕ</string>
     <string name="worker_days">Дни работы</string>
+    <string name="qr">Наведите камеру на QR код клиента, дождитесь сканирования и нажмите кнопку «Подтвердить»</string>
     <color name="gosteeBackgroundColor">#e2e2e2</color>
 </resources>

@@ -13,20 +13,24 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/iconblack"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/iconroundblack"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-        <activity android:name=".Controllers.MainActivity">
+        <activity android:name=".Controllers.MainActivity"
+            android:theme="@style/AppTheme.Launcher"
+            tools:ignore="InnerclassSeparator">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Controllers.EditKassa" />
-        <activity android:name=".Controllers.Statistic" />
+        <activity android:name=".Controllers.EditKassa"
+            tools:ignore="InnerclassSeparator" />
+        <activity android:name=".Controllers.Statistic"
+            tools:ignore="InnerclassSeparator" />
         <activity
             android:name=".Controllers.Registration"
             android:windowSoftInputMode="stateAlwaysHidden|adjustResize"
@@ -39,7 +43,8 @@
             android:name=".Controllers.NewPassword"
             android:windowSoftInputMode="stateAlwaysHidden|adjustResize"
             tools:ignore="InnerclassSeparator" />
-        <activity android:name=".Controllers.QrScanner"></activity>
+        <activity android:name=".Controllers.QrScanner"
+            tools:ignore="InnerclassSeparator" />
     </application>
 
 </manifest>

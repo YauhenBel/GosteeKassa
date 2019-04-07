@@ -4,6 +4,8 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.genia.gosteekassa.ConnToDB.ConnDB;
 import com.example.genia.gosteekassa.R;
@@ -27,7 +30,7 @@ public class QrScanner extends AppCompatActivity implements ZXingScannerView.Res
 
     private static final String TAG = "QrScanner";
     private ZXingScannerView mScanner;
-    private TextView tvStatus, tvResult;
+    private TextView tvStatus;
     private String mResult = "";
     private String service_id;
 
@@ -53,9 +56,8 @@ public class QrScanner extends AppCompatActivity implements ZXingScannerView.Res
 
         mScanner = findViewById(R.id.zxscan);
 
-        tvStatus = findViewById(R.id.tvStatus);
 
-        tvResult = findViewById(R.id.tvResult);
+        tvStatus = findViewById(R.id.tvStatus);
 
         tvStatus.setText("Сканировнаие...");
 
@@ -85,9 +87,22 @@ public class QrScanner extends AppCompatActivity implements ZXingScannerView.Res
         }
         ConnDB connDB = new ConnDB();
         String ansver = connDB.sendRequest(input, this);
-        Log.i(TAG, "updateDB: ansver: " +ansver);
+        Log.i(TAG, "updateDB: ansver: " + ansver);
+        if (ansver.equals("1")) {
+            Log.i(TAG, "changeMarkForUser: Данный пользователь не добавил вашу карту");
+            workWithGui();
+        }
     }
 
+    private void workWithGui(){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override public void run() {
+                Toast.makeText(getApplicationContext(),
+                        "Данный пользователь не добавил вашу карту", Toast.LENGTH_LONG)
+                        .show();
+            }
+        });
+    }
     class MyThread extends Thread{
         @Override
         public void run() {
@@ -128,7 +143,6 @@ public class QrScanner extends AppCompatActivity implements ZXingScannerView.Res
     @Override
     public void handleResult(Result result) {
         tvStatus.setText("Сканирование выполнено.");
-        tvResult.setText("ID пользователя: " + result);
         mResult = String.valueOf(result);
 
     }
